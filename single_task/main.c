@@ -67,13 +67,7 @@ int main(void)
 	This is generated from Atmel START project. */
 	atmel_start_init();
 
-	/* Standard register test. */
-	//vStartRegTestTasks();
 
-	/* Optionally enable below tests. This port only has 2KB RAM. */
-	//vStartIntegerMathTasks( tskIDLE_PRIORITY );
-	//vStartPolledQueueTasks( mainQUEUE_POLL_PRIORITY );
-	//xTaskCreate( vBlinkOnboardUserLED, "LED", 50, NULL, mainCHECK_TASK_PRIORITY, NULL );
 	
 	//we are creating a single task that blinks both of my leds every 100
 	xTaskCreate( vBlinkOnboardUserLED,	/*point and use this function wiht this task */
@@ -84,57 +78,12 @@ int main(void)
 				NULL					/*this is the return value*/
 				);
 
-	/* Create the tasks defined within this file. */
-	//xTaskCreate( vErrorChecks, "Check", configMINIMAL_STACK_SIZE, NULL, mainLED_BLINK_PRIORITY, NULL );
 
-	/* In this port, to use preemptive scheduler define configUSE_PREEMPTION
-	as 1 in portmacro.h.  To use the cooperative scheduler define
-	configUSE_PREEMPTION as 0. */
-	
 	vTaskStartScheduler();
 	//starts teh schedualer
 }
 
-/*-----------------------------------------------------------*/
-static void vErrorChecks( void *pvParameters )
-{
-static UBaseType_t uxErrorHasOccurred = 0;
-BaseType_t xFirstTimeCheck = pdTRUE;
 
-	/* The parameters are not used. */
-	( void ) pvParameters;
-
-	/* Cycle for ever, delaying then checking all the other tasks are still
-	operating without error. */
-	for( ;; )
-	{
-		if( xAreRegTestTasksStillRunning() != pdTRUE )
-		{
-			uxErrorHasOccurred |= 0x01U ;
-		}
-		if( xAreIntegerMathsTaskStillRunning() != pdTRUE )
-		{
-			uxErrorHasOccurred |= ( 0x01U << 1);
-		}
-		if( xArePollingQueuesStillRunning() != pdTRUE )
-		{
-			uxErrorHasOccurred |= ( 0x01U << 2);
-		}
-
-		/* When check task runs before any other tasks, all above checks shall fail.
-		To avoid false alarm, clear errors upon first entry. */
-		if ( xFirstTimeCheck == pdTRUE )
-		{
-			uxErrorHasOccurred = 0;
-			xFirstTimeCheck = pdFALSE;
-		}
-
-		/* Could set break point at below line to verify uxErrorHasOccurred. */
-		vTaskDelay( mainCHECK_PERIOD );
-	}
-}
-
-/*-----------------------------------------------------------*/
 static void vBlinkOnboardUserLED( void *pvParameters )
 {
 	//volatile BLUE_state = 1;
@@ -176,7 +125,20 @@ static void vBlinkOnboardUserLED( void *pvParameters )
 
 		
 		vTaskDelay(pdMS_TO_TICKS(50));
+		//this is the amount of time that the calling function will remain in the blocked state 
+		//before transitioning to the ready state
 		//this makes the leds blnik every 50ms
+		
+		//vTaskDelay vs vTaskDelayUntil( TickType_t * pxPreviousWakeTime, TickType_t xTimeIncrement )
+
+		//vTaskDelay defines number of tick interrupts taht should occur between valling vTaskDelay() and it transitioning out of the blocked state
+		//the length of time in the blocked state is defined, the time that the taks leaves the blocked state is relative to when vTaskDelay() was called
+		
+		
+		//vTaskDelayUntil defines the exact tick count value when the calling fucntion should leave the blocked state
+		
+		//the time when the calling fucntion is un-blocked is more absolute with vTaskDelayUntil, we tell it what time the tick count needs to start
+		//vTaskDelay is relative to the time that vTaskDelay() is called, we do not explicetly tell this functio when the tick count needs to start
 	}
 
 }
@@ -254,4 +216,44 @@ static StackType_t uxTimerTaskStack[ configTIMER_TASK_STACK_DEPTH ];
     configTIMER_TASK_STACK_DEPTH is specified in words, not bytes. */
     *pulTimerTaskStackSize = configTIMER_TASK_STACK_DEPTH;
 }
+/*-----------------------------------------------------------*/
+/*-----------------------------------------------------------*/
+static void vErrorChecks( void *pvParameters )
+{
+static UBaseType_t uxErrorHasOccurred = 0;
+BaseType_t xFirstTimeCheck = pdTRUE;
+
+	/* The parameters are not used. */
+	( void ) pvParameters;
+
+	/* Cycle for ever, delaying then checking all the other tasks are still
+	operating without error. */
+	for( ;; )
+	{
+		if( xAreRegTestTasksStillRunning() != pdTRUE )
+		{
+			uxErrorHasOccurred |= 0x01U ;
+		}
+		if( xAreIntegerMathsTaskStillRunning() != pdTRUE )
+		{
+			uxErrorHasOccurred |= ( 0x01U << 1);
+		}
+		if( xArePollingQueuesStillRunning() != pdTRUE )
+		{
+			uxErrorHasOccurred |= ( 0x01U << 2);
+		}
+
+		/* When check task runs before any other tasks, all above checks shall fail.
+		To avoid false alarm, clear errors upon first entry. */
+		if ( xFirstTimeCheck == pdTRUE )
+		{
+			uxErrorHasOccurred = 0;
+			xFirstTimeCheck = pdFALSE;
+		}
+
+		/* Could set break point at below line to verify uxErrorHasOccurred. */
+		vTaskDelay( mainCHECK_PERIOD );
+	}
+}
+
 /*-----------------------------------------------------------*/
