@@ -1,3 +1,6 @@
-this explains how to create multimple tasks
-how to give them a value upon creation
-how pripority works
+this explains how to create multimple tasks from a singele function
+
+explains how:
+  how to give them a value upon creation
+  how pripority works
+  describes why we want to put tasks into the idel state
